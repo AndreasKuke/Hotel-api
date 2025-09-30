@@ -1,0 +1,60 @@
+### Test root
+GET http://localhost:7070/api/v1/
+
+
+### Get all hotels
+GET http://localhost:7070/api/v1/hotel/
+
+
+### Create a hotel
+POST http://localhost:7070/api/v1/hotel/
+Content-Type: application/json
+
+{
+  "name": "HTTP Hotel",
+  "address": "HTTP Street"
+}
+
+### Get hotel by ID
+GET http://localhost:7070/api/v1/hotel/1
+
+
+### Update hotel
+PUT http://localhost:7070/api/v1/hotel/1
+Content-Type: application/json
+
+{
+  "name": "Stinky",
+  "address": "No"
+}
+
+
+### Delete hotel
+DELETE http://localhost:7070/api/v1/hotel/1
+
+
+
+# Room Stuff
+
+### Add a room to a hotel
+POST http://localhost:7070/api/v1/hotel/1/room
+Content-Type: application/json
+
+{
+  "number": "201",
+  "type": "Deluxe",
+  "price": 250.0
+}
+
+
+### Get all rooms for a hotel
+GET http://localhost:7070/api/v1/hotel/1/rooms
+
+
+### Remove a room from a hotel
+DELETE http://localhost:7070/api/v1/hotel/1/room
+Content-Type: application/json
+
+{
+  "id": 1
+}
