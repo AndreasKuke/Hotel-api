@@ -2,6 +2,8 @@ package app.config;
 
 import app.entities.Hotel;
 import app.entities.Room;
+import app.security.Role;
+import app.security.User;
 import app.utils.Utils;
 
 import jakarta.persistence.EntityManagerFactory;
@@ -44,6 +46,8 @@ public class HibernateConfig {
         // configuration.addAnnotatedClass(Point.class);
         configuration.addAnnotatedClass(Hotel.class);
         configuration.addAnnotatedClass(Room.class);
+        configuration.addAnnotatedClass(Role.class);
+        configuration.addAnnotatedClass(User.class);
     }
 
     private static EntityManagerFactory createEMF(boolean forTest) {

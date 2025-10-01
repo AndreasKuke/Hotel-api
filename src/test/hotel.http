@@ -58,3 +58,22 @@ Content-Type: application/json
 {
   "id": 1
 }
+
+
+
+
+
+### Create user
+POST http://localhost:7070/api/v1/auth/create
+Content-Type: applicaiton/json
+
+{
+ "username": "Hans",
+ "password": "Pass123"
+}
+
+
+### Give user role
+PUT http://localhost:7070/api/v1/auth/give-role
+Content-Type: application/json
+

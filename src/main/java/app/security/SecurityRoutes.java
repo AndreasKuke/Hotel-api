@@ -2,8 +2,7 @@ package app.security;
 
 import io.javalin.apibuilder.EndpointGroup;
 
-import static io.javalin.apibuilder.ApiBuilder.path;
-import static io.javalin.apibuilder.ApiBuilder.post;
+import static io.javalin.apibuilder.ApiBuilder.*;
 
 public class SecurityRoutes {
 
@@ -11,8 +10,11 @@ public class SecurityRoutes {
 
     public EndpointGroup getSecurityRoutes() {
         return ()->{
-            path("/auth", () -> {
+            path("/", () -> {
                 post("/login", securityController.login());
+                post("/create", securityController::createUser);
+                put("/give-role", securityController::giveUserRole);
+
             });
         };
     }
