@@ -1,7 +1,10 @@
 package app.controllers;
 
 import app.config.ApplicationConfig;
+import app.config.HibernateConfig;
 import io.restassured.response.Response;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,6 +21,8 @@ import static org.hamcrest.Matchers.*;
 class HotelApiTest {
 
     private long id;
+    EntityManagerFactory emf = HibernateConfig.getEntityManagerFactoryForTest();
+    EntityManager em = emf.createEntityManager();
 
     @BeforeAll
     static void setup() {
@@ -28,9 +33,17 @@ class HotelApiTest {
     }
 
     // Lav en @BeforeEach, der starter test db'en i en ønsket tilstand. @AfterEach, teardown
+    @BeforeEach
+    void setUp() {
+        em.getTransaction().begin();
+    }
+
+    @AfterEach
+    void tearDown() {
+        em.close();
+    }
 
     @Test
-    @Order(1)
     void createHotel() {
         String hotel = """
             {
@@ -56,7 +69,6 @@ class HotelApiTest {
 
 
     @Test
-    @Order(2)
     void getAllHotels() {
         when()
                 .get("/")
@@ -67,7 +79,6 @@ class HotelApiTest {
     }
 
     @Test
-    @Order(3)
     void getHotelById() {
         when()
                 .get("/" + id)
@@ -81,7 +92,6 @@ class HotelApiTest {
 
 
     @Test
-    @Order(4)
     void updateHotel() {
         given()
                 .contentType(ContentType.JSON)
@@ -100,7 +110,6 @@ class HotelApiTest {
     }
 
     @Test
-    @Order(5)
     void addRoom(){
         String room = """
         {
@@ -123,7 +132,6 @@ class HotelApiTest {
     }
 
     @Test
-    @Order(6)
     void getRoomsForHotel() {
         when()
                 .get("/" + id + "/rooms")
@@ -135,7 +143,6 @@ class HotelApiTest {
 
 
     @Test
-    @Order(7)
     void deleteHotel() {
         when()
                 .delete("/" + id)

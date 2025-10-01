@@ -20,11 +20,17 @@
         <logback-classic>1.5.16</logback-classic>
         <org.slf4j>2.0.16</org.slf4j>
         <hamcrest>3.0</hamcrest>
+        <jbcrypt.version>0.4</jbcrypt.version>
 
 
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>${jbcrypt.version}</version>
+        </dependency>
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
