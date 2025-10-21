@@ -77,3 +77,7 @@ Content-Type: applicaiton/json
 PUT http://localhost:7070/api/v1/auth/give-role
 Content-Type: application/json
 
+{
+  "username": "Hans",
+  "role": "ADMIN"
+}

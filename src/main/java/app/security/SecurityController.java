@@ -3,6 +3,7 @@ package app.security;
 import app.config.HibernateConfig;
 import app.exceptions.ValidationException;
 import app.utils.Utils;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.javalin.http.Context;
@@ -37,10 +38,17 @@ public class SecurityController {
         ctx.status(200).json(createdUser);
     }
 
-    public void giveUserRole(Context ctx){
-        User user = ctx.bodyAsClass(User.class);
-        String username = user.getUsername();
+    public void createRole(Context ctx){
+        Role role = ctx.bodyAsClass(Role.class);
+    }
 
-        user = dao.addUserRole(username, "ADMIN");
+    public void giveUserRole(Context ctx) throws JsonProcessingException {
+        ObjectMapper mapper = new Utils().getObjectMapper();
+        ObjectNode request = mapper.readValue(ctx.body(), ObjectNode.class);
+        String username = request.get("username").asText();
+        String role = request.get("role").asText();
+
+        User user = dao.addUserRole(username, role);
+        ctx.status(200).json(user);
     }
 }
