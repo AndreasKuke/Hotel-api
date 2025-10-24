@@ -2,45 +2,51 @@ package app.controllers;
 
 import app.config.ApplicationConfig;
 import app.config.HibernateConfig;
-import io.restassured.response.Response;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import io.restassured.response.ValidatableResponse;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.*;
 
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class HotelApiTest {
 
-    private long id;
-    EntityManagerFactory emf = HibernateConfig.getEntityManagerFactoryForTest();
-    EntityManager em = emf.createEntityManager();
+    private EntityManagerFactory emf;
 
     @BeforeAll
-    static void setup() {
+    void setup() {
         ApplicationConfig.startServer(7007);
         RestAssured.baseURI = "http://localhost";
         RestAssured.port = 7007;
         RestAssured.basePath = "/api/v1/hotel";
+        emf = HibernateConfig.getEntityManagerFactoryForTest();
     }
 
-    // Lav en @BeforeEach, der starter test db'en i en ønsket tilstand. @AfterEach, teardown
-    @BeforeEach
-    void setUp() {
-        em.getTransaction().begin();
+    @AfterAll
+    void tearDownAll() {
+        if (emf != null && emf.isOpen()) emf.close();
     }
 
-    @AfterEach
-    void tearDown() {
-        em.close();
+    // Utility method to create a hotel and return its ID
+    long createTestHotel(String name, String address) {
+        String hotel = String.format("""
+            {
+              "name": "%s",
+              "address": "%s"
+            }
+            """, name, address);
+
+        return given()
+                .contentType(ContentType.JSON)
+                .body(hotel)
+                .when()
+                .post("/")
+                .then()
+                .statusCode(201)
+                .extract().jsonPath().getLong("id");
     }
 
     @Test
@@ -52,47 +58,45 @@ class HotelApiTest {
             }
             """;
 
-        Response response =
-                given()
-                        .contentType(ContentType.JSON)
-                        .body(hotel)
-                        .when()
-                        .post("/")
-                        .then()
-                        .statusCode(201)
-                        .log().all()
-                        .extract().response();
-
-        id = response.jsonPath().getLong("id");
-        System.out.println("Extracted ID: " + id);
+        given()
+                .contentType(ContentType.JSON)
+                .body(hotel)
+                .when()
+                .post("/")
+                .then()
+                .statusCode(201)
+                .body("name", equalTo("Test Hotel"))
+                .body("address", equalTo("Test Street"));
     }
-
 
     @Test
     void getAllHotels() {
+        // Ensure at least one hotel exists
+        createTestHotel("AllHotels Hotel", "Some Street");
+
         when()
                 .get("/")
                 .then()
                 .statusCode(200)
-                .log().all()
                 .body("size()", greaterThan(0));
     }
 
     @Test
     void getHotelById() {
+        long id = createTestHotel("Hotel By ID", "Id Street");
+
         when()
                 .get("/" + id)
                 .then()
-                .log().all()
                 .statusCode(200)
                 .body("id", equalTo((int) id))
-                .body("name", equalTo("Test Hotel"));
-
+                .body("name", equalTo("Hotel By ID"));
     }
-
 
     @Test
     void updateHotel() {
+        long id = createTestHotel("Old Name", "Old Address");
+
         given()
                 .contentType(ContentType.JSON)
                 .body("""
@@ -110,7 +114,8 @@ class HotelApiTest {
     }
 
     @Test
-    void addRoom(){
+    void addRoom() {
+        long id = createTestHotel("Room Hotel", "Room Street");
         String room = """
         {
           "number": 456,
@@ -118,32 +123,46 @@ class HotelApiTest {
         }
         """;
 
-        // Add room to the hotel
         given()
                 .contentType(ContentType.JSON)
                 .body(room)
                 .when()
                 .post("/" + id + "/room")
                 .then()
-                .statusCode(201 & 200) //
-                .log().all()
+                .statusCode(anyOf(equalTo(201), equalTo(200)))
                 .body("rooms.size()", greaterThan(0))
                 .body("rooms.find { it.number == 456 }.price", equalTo(150.0f));
     }
 
     @Test
     void getRoomsForHotel() {
+        long id = createTestHotel("RoomsFetchHotel", "RoomsFetchStreet");
+        String room = """
+        {
+          "number": 789,
+          "price": 180.0
+        }
+        """;
+        // Add a room so rooms endpoint is not empty
+        given()
+                .contentType(ContentType.JSON)
+                .body(room)
+                .when()
+                .post("/" + id + "/room")
+                .then()
+                .statusCode(anyOf(equalTo(201), equalTo(200)));
+
         when()
                 .get("/" + id + "/rooms")
                 .then()
                 .statusCode(200)
                 .body("$", notNullValue());
-
     }
-
 
     @Test
     void deleteHotel() {
+        long id = createTestHotel("Delete Hotel", "Delete Street");
+
         when()
                 .delete("/" + id)
                 .then()
@@ -155,5 +174,4 @@ class HotelApiTest {
                 .then()
                 .statusCode(404);
     }
-
 }
